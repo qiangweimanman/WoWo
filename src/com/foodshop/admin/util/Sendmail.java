@@ -25,9 +25,29 @@ public class Sendmail extends Thread {
     //发送邮件的服务器地址
     private String host = "smtp.163.com";
     
-    private Admin admin;
-    public Sendmail(Admin admin){
-        this.admin = admin;
+    private String mail_context;
+    
+    public String getMail_context() {
+		return mail_context;
+	}
+
+	public void setMail_context(String mail_context) {
+		this.mail_context = mail_context;
+	}
+	private String subject;
+	private String mail;
+
+	/**
+	 * 第一个参数是发送发的Email，第二个参数是邮件主题，第三个是邮件内容
+	 * @param mail
+	 * @param subject
+	 * @param mail_context
+	 */
+    public Sendmail(String mail,String subject,String mail_context){
+   
+        this.mail = mail;
+        this.mail_context = mail_context;
+        this.subject = subject;
     }
     
     /* 重写run方法的实现，在run方法中发送邮件给指定的用户
@@ -44,7 +64,7 @@ public class Sendmail extends Thread {
             session.setDebug(true);
             Transport ts = session.getTransport();
             ts.connect(host, username, password);
-            Message message = createEmail(session,admin);
+            Message message = createEmail(session);
             ts.sendMessage(message, message.getAllRecipients());
             ts.close();
         }catch (Exception e) {
@@ -62,16 +82,17 @@ public class Sendmail extends Thread {
     * @return
     * @throws Exception
     */ 
-    public Message createEmail(Session session,Admin admin) throws Exception{
+    public Message createEmail(Session session) throws Exception{
         
         MimeMessage message = new MimeMessage(session);
         message.setFrom(new InternetAddress(from));
-        message.setRecipient(Message.RecipientType.TO, new InternetAddress(admin.getAdmin_mail()));
-        message.setSubject("用户激活邮件");
+        message.setRecipient(Message.RecipientType.TO, new InternetAddress(mail));
+        message.setSubject(subject);
         
-        String info = "恭喜您注册成功，您的用户名：" + admin.getAdmin_uname() + ",您的密码：" + admin.getAdmin_pwd() + "，请妥善保管，如有问题请联系网站客服!!";
-        message.setContent(info, "text/html;charset=UTF-8");
+        message.setContent(mail_context, "text/html;charset=UTF-8");
         message.saveChanges();
         return message;
     }
+    
+
 }

@@ -34,16 +34,17 @@ public class AdminDaoImpl implements AdminDao{
 
 	@Override
 	public boolean sendMail(Admin admin) {
-		boolean flag = true;
+		boolean flag = false;
 		try {
-			Sendmail send = new Sendmail(admin);
+			Sendmail send = new Sendmail(admin.getAdmin_mail(), "注册成功", "尊敬的" + admin.getAdmin_uname() + "您已经成功注册了，谢谢您的支持");
 			//用户注册成功之后就使用用户注册时的邮箱给用户发送一封Email
 			//发送邮件是一件非常耗时的事情，因此这里开辟了另一个线程来专门发送邮件
 			send.start();
 			//等待发送
 			Thread.sleep(2000);
+			flag = true;
 		} catch (Exception e) {
-			flag = false;
+			return false;
 		}
 		
 		return flag;
