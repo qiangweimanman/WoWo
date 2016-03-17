@@ -6,11 +6,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
 import com.foodshop.admin.dao.AdminDao;
 import com.foodshop.admin.util.Sendmail;
 import com.foodshop.admin.vo.Admin;
+import com.foodshop.admin.vo.Store;
 
 
 @Repository("adminDao")
@@ -20,40 +20,65 @@ public class AdminDaoImpl implements AdminDao{
 	private EntityManager em;
 
 	@Override
-	public Admin login(String uname, String pwd) {
+	public Admin login(String xh, String psd) {
 
-		String jpql="select s from Student s where s.xh=:xh and s.psd=:psd";
+		String jpql="select s from admin s where s.admin_uname=:xh and s.admin_pwd=:psd";
 		List<Admin> ls=em.createQuery(jpql)
-				.setParameter("admin_uname", uname)
-				.setParameter("admin_pwd", pwd)
+				.setParameter("xh", xh)
+				.setParameter("psd", psd)
 				.getResultList();
 		
 		if(ls.isEmpty()) return null;
 		else return ls.get(0);
+
 	}
 
+	
 	@Override
-	public boolean sendMail(Admin admin) {
-		boolean flag = false;
-		try {
-			Sendmail send = new Sendmail(admin.getAdmin_mail(), "注册成功", "尊敬的" + admin.getAdmin_uname() + "您已经成功注册了，谢谢您的支持");
-			//用户注册成功之后就使用用户注册时的邮箱给用户发送一封Email
-			//发送邮件是一件非常耗时的事情，因此这里开辟了另一个线程来专门发送邮件
-			send.start();
-			//等待发送
-			Thread.sleep(2000);
-			flag = true;
-		} catch (Exception e) {
-			return false;
-		}
-		
-		return flag;
+	public boolean updateMailAndTel(Admin admin) {
+		/*em.refresh(admin);
+		return true;*/
+		int n = 0;
+
+		String jpql = "update admin a set a.admin_uname=:name,a.admin_pwd=:passwd,"
+				+ "a.admin_tel=:phone,a.admin_mail=:email";
+
+		n = em.createQuery(jpql).setParameter("name", admin.getAdmin_uname())
+				.setParameter("passwd", admin.getAdmin_pwd())
+				.setParameter("phone", admin.getAdmin_tel())
+				.setParameter("email", admin.getAdmin_mail()).executeUpdate();
+
+		return true;
+
 	}
+
 
 	@Override
 	public int regist(Admin admin) {
 		em.persist(admin);
 		return admin.getAdmin_id();
+	}
+
+
+	@Override
+	public List<Store> findStoreInfo() {
+		String jpql="select s from store s";
+		List<Store> ls = em.createQuery(jpql).getResultList();
+		System.out.println("this is dao : " + ls.get(0).getShopName());
+		return ls;
+
+	}
+
+
+	@Override
+	public void updateStoreStaute(String email) {
+
+
+		String jpql = "update store a set a.admin_distribution=:distribution";
+
+		em.createQuery(jpql).setParameter("distribution", true).executeUpdate();
+
+		
 	}
 
 }

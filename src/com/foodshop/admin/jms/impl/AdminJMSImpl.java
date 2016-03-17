@@ -18,6 +18,8 @@ import org.apache.activemq.command.ActiveMQDestination;
 import org.springframework.stereotype.Service;
 
 import com.foodshop.admin.jms.AdminJMS;
+import com.foodshop.admin.util.DataUtil;
+import com.mysql.fabric.xmlrpc.base.Data;
 
 @Service("adminJMS")
 public class AdminJMSImpl implements AdminJMS{
@@ -25,10 +27,20 @@ public class AdminJMSImpl implements AdminJMS{
 
 	@Resource(name="pooledConnectionFactory")
 	private ConnectionFactory factory;
-	
+	/**
+	 * 普通的admin消息队列
+	 */
 	@Resource(name="queueDestination")
 	private  ActiveMQDestination queueDestination;
 	
+	/**
+	 * 从store消息队列中获得新申请个数信息
+	 */
+	@Resource(name="queueDestinationGetnewNum")
+	private  ActiveMQDestination queueDestinationGetnewNum;
+	/**
+	 * 普通的admin主题队列
+	 */
 	@Resource(name="topicDestination")
 	private ActiveMQDestination topicDestination;
 	
@@ -38,8 +50,9 @@ public class AdminJMSImpl implements AdminJMS{
 	private MessageProducer producer;
 	private MessageConsumer consumer;
 
+	
 	@Override
-	public boolean sendTextMessage(String context,boolean method) {
+	public boolean sendTextMessage(String context,int msgName) {
 		
 		boolean flag = false;
 		try {
@@ -47,10 +60,12 @@ public class AdminJMSImpl implements AdminJMS{
 			conn.start();
 			session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			msg = session.createTextMessage(context);
-			if (method == true) {
+			if (msgName == DataUtil.ADMIN_QUEUE) {
 				producer = session.createProducer(queueDestination);
-			}else {
+			}else if(msgName == DataUtil.ADMIN_TOPIC){
 				producer = session.createProducer(topicDestination);
+			}else if (msgName == DataUtil.STORE_QUEUE_GET_NEWNUMBER) {
+				producer = session.createProducer(queueDestinationGetnewNum);
 			}
 			producer.send(msg);
 			flag = true;
@@ -67,15 +82,17 @@ public class AdminJMSImpl implements AdminJMS{
 
 
 	@Override
-	public boolean sendMapMessage(MapMessage mapContext, boolean method) {
+	public boolean sendMapMessage(MapMessage mapContext, int msgName) {
 
 		try {
 			conn = factory.createConnection();
 			session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			if (method == true) {
+			if (msgName == DataUtil.ADMIN_QUEUE) {
 				producer = session.createProducer(queueDestination);
-			}else {
+			}else if(msgName == DataUtil.ADMIN_TOPIC){
 				producer = session.createProducer(topicDestination);
+			}else if (msgName == DataUtil.STORE_QUEUE_GET_NEWNUMBER) {
+				producer = session.createProducer(queueDestinationGetnewNum);
 			}
 			producer.send(mapContext);  
 			return true;
@@ -89,15 +106,17 @@ public class AdminJMSImpl implements AdminJMS{
 	
 
 	@Override
-	public boolean sendObjectMessage(Object objectContext, boolean method) {
+	public boolean sendObjectMessage(Object objectContext, int msgName) {
 		try {
 			conn = factory.createConnection();
 			session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			ObjectMessage objMsg=session.createObjectMessage((Serializable) objectContext);//发送对象时必须让该对象实现serializable接口  
-			if (method == true) {
+			if (msgName == DataUtil.ADMIN_QUEUE) {
 				producer = session.createProducer(queueDestination);
-			}else {
+			}else if(msgName == DataUtil.ADMIN_TOPIC){
 				producer = session.createProducer(topicDestination);
+			}else if (msgName == DataUtil.STORE_QUEUE_GET_NEWNUMBER) {
+				producer = session.createProducer(queueDestinationGetnewNum);
 			}  
 			producer.send(objMsg);
 			return true;
@@ -109,23 +128,25 @@ public class AdminJMSImpl implements AdminJMS{
 
 
 	@Override
-	public String receiveTextMessage(boolean method) {
+	public String receiveTextMessage(int msgName) {
 		
 		String text = null;
 		try {
 			conn = factory.createConnection();
 			session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			conn.start();
-			if (method == true) {
-				producer = session.createProducer(queueDestination);
-			}else {
-				producer = session.createProducer(topicDestination);
+			if (msgName == DataUtil.ADMIN_QUEUE) {
+				consumer = session.createConsumer(queueDestination);
+			}else if(msgName == DataUtil.ADMIN_TOPIC){
+				consumer = session.createConsumer(topicDestination);
+			}else if (msgName == DataUtil.STORE_QUEUE_GET_NEWNUMBER) {
+				consumer = session.createConsumer(queueDestinationGetnewNum);
 			}
 			msg = consumer.receive();
 			if (msg instanceof TextMessage) {
 				text =  ((TextMessage) msg).getText();
 			}
-			
+		
 		} catch (JMSException e) {
 			e.printStackTrace();
 		} finally {
@@ -136,22 +157,24 @@ public class AdminJMSImpl implements AdminJMS{
 	}
 
 	@Override
-	public MapMessage receiveMapMessage(boolean method) {
+	public MapMessage receiveMapMessage(int msgName) {
 		MapMessage mapMessage = null;
 		try {
 			conn = factory.createConnection();
 			session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			conn.start();
-			if (method == true) {
-				producer = session.createProducer(queueDestination);
-			}else {
-				producer = session.createProducer(topicDestination);
+			if (msgName == DataUtil.ADMIN_QUEUE) {
+				consumer = session.createConsumer(queueDestination);
+			}else if(msgName == DataUtil.ADMIN_TOPIC){
+				consumer = session.createConsumer(topicDestination);
+			}else if (msgName == DataUtil.STORE_QUEUE_GET_NEWNUMBER) {
+				consumer = session.createConsumer(queueDestinationGetnewNum);
 			}
 			msg = consumer.receive();
 			if (msg instanceof MapMessage) {
 				mapMessage = (MapMessage)msg;
 			}
-			
+		
 		} catch (JMSException e) {
 			e.printStackTrace();
 		} finally {
@@ -164,22 +187,24 @@ public class AdminJMSImpl implements AdminJMS{
 
 
 	@Override
-	public ObjectMessage receiveObjectMessage(boolean method) {
+	public ObjectMessage receiveObjectMessage(int msgName) {
 		ObjectMessage message = null;
 		try {
 			conn = factory.createConnection();
 			session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			conn.start();
-			if (method == true) {
-				producer = session.createProducer(queueDestination);
-			}else {
-				producer = session.createProducer(topicDestination);
+			if (msgName == DataUtil.ADMIN_QUEUE) {
+				consumer = session.createConsumer(queueDestination);
+			}else if(msgName == DataUtil.ADMIN_TOPIC){
+				consumer = session.createConsumer(topicDestination);
+			}else if (msgName == DataUtil.STORE_QUEUE_GET_NEWNUMBER) {
+				consumer = session.createConsumer(queueDestinationGetnewNum);
 			}
 			msg = consumer.receive();
 			if (msg instanceof ObjectMessage) {
 				message = (ObjectMessage)msg;
 			}
-			
+		
 		} catch (JMSException e) {
 			e.printStackTrace();
 		} finally {
@@ -210,5 +235,10 @@ public class AdminJMSImpl implements AdminJMS{
 			}
 		
 	}
+	
+	
+
+
+
 	
 }

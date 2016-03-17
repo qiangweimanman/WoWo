@@ -47,9 +47,15 @@
 			<value>adminQueue</value>
 		</constructor-arg>
 	</bean>
+	<!--这个是队列目的地，点对点的 -->
+	<bean id="queueDestinationGetnewNum" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg>
+			<value>storeQueueGetnewNum</value>
+		</constructor-arg>
+	</bean>
 	<!--这个是主题目的地，一对多的 -->
 	<bean id="topicDestination" class="org.apache.activemq.command.ActiveMQTopic">
-		<constructor-arg value="adminTopic" />
+		<constructor-arg value="storeTopic" />
 	</bean>
 
 	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>

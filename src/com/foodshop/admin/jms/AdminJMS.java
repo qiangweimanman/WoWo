@@ -22,14 +22,14 @@ public interface AdminJMS {
 	 * @param method true：queue flase：topic
 	 * @return
 	 */
-	public abstract boolean sendTextMessage(String msgContext,boolean method);
+	public abstract boolean sendTextMessage(String msgContext,int msgName);
 	
 	/**
 	 * 接收Text消息，method指定接收方式
 	 * @param method method true：queue flase：topic
 	 * @return
 	 */
-	public abstract String receiveTextMessage(boolean method);
+	public abstract String receiveTextMessage(int msgName);
 	
 	/**
 	 * 发送Map消息，method指定接收方式
@@ -37,14 +37,14 @@ public interface AdminJMS {
 	 * @param method method true：queue flase：topic
 	 * @return
 	 */
-	public abstract boolean sendMapMessage(MapMessage mapContext,boolean method);
+	public abstract boolean sendMapMessage(MapMessage mapContext,int msgName);
 	
 	/**
 	 * 接收Map的消息，method指定消息发送方式
 	 * @param method true：queue flase：topic
 	 * @return
 	 */
-	public abstract MapMessage receiveMapMessage(boolean method);
+	public abstract MapMessage receiveMapMessage(int msgName);
 	
 	/**
 	 * 发送Object的消息，method指定消息发送方式
@@ -53,14 +53,14 @@ public interface AdminJMS {
 	 * @return
 	 * @throws JMSException 
 	 */
-	public abstract boolean sendObjectMessage(Object objectContext,boolean method);
+	public abstract boolean sendObjectMessage(Object objectContext,int msgName);
 	
 	/**
 	 * 接收Object的消息，method指定消息发送方式
 	 * @param method true：queue flase：topic
 	 * @return
 	 */
-	public abstract ObjectMessage receiveObjectMessage(boolean method);
+	public abstract ObjectMessage receiveObjectMessage(int msgName);
 	
 	/**
 	 * 结束处理
@@ -70,4 +70,6 @@ public interface AdminJMS {
 	 * @param conn
 	 */
 	public abstract void closeJMS(MessageProducer producer,MessageConsumer consumer,Session session,Connection conn);
+	
+
 }

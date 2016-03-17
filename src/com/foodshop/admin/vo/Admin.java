@@ -11,21 +11,25 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 
-@Entity
+@Entity(name="admin")
 @Table(name="admin")
 public class Admin implements Serializable{
 	
 	@Id  
 	@Column(name="[id]")
 	@SequenceGenerator(name="seqhilo",sequenceName="admin_id")
-	@GeneratedValue(strategy = GenerationType.AUTO) 
+	@GeneratedValue(strategy = GenerationType.IDENTITY) 
 	private Integer admin_id;
 	
+	public String getAdmin_tel() {
+		return admin_tel;
+	}
+
 	private String admin_uname;
 	
 	private String admin_pwd;
 	
-	private long admin_tel;
+	private String admin_tel;
 	
 	private String admin_mail;
 
@@ -37,13 +41,13 @@ public class Admin implements Serializable{
 		this.admin_id = admin_id;
 	}
 
-	public long getAdmin_tel() {
-		return admin_tel;
-	}
+	
 
-	public void setAdmin_tel(long admin_tel) {
+	public void setAdmin_tel(String admin_tel) {
 		this.admin_tel = admin_tel;
 	}
+
+	
 
 	public String getAdmin_uname() {
 		return admin_uname;
